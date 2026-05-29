@@ -1,0 +1,273 @@
+<Window x:Class="AppleNotesWpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AppleNotesWpf"
+        mc:Ignorable="d"
+        Title="Noter" Height="700" Width="1100"
+        Background="Transparent"
+        FontFamily="Source Sans Pro, Segoe UI Variable Text, Segoe UI, sans-serif"
+        WindowStyle="None"
+        SourceInitialized="Window_SourceInitialized">
+
+    <Window.Resources>
+        <!-- Toolbar button style -->
+        <Style x:Key="ToolbarBtn" TargetType="Button">
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#18FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- macOS Traffic Light Button: Close (Red) -->
+        <Style x:Key="TrafficClose" TargetType="Button">
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse x:Name="Circle" Width="14" Height="14" Fill="#FF5F57"/>
+                            <TextBlock x:Name="Symbol" Text="×" FontSize="10" FontWeight="Bold" Foreground="#4A0002"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" Opacity="0"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Circle" Property="Fill" Value="#FF3B30"/>
+                                <Setter TargetName="Symbol" Property="Opacity" Value="1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- macOS Traffic Light Button: Minimize (Yellow) -->
+        <Style x:Key="TrafficMinimize" TargetType="Button">
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse x:Name="Circle" Width="14" Height="14" Fill="#FEBC2E"/>
+                            <TextBlock x:Name="Symbol" Text="−" FontSize="12" FontWeight="Bold" Foreground="#995700"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0" Opacity="0"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Circle" Property="Fill" Value="#F5A623"/>
+                                <Setter TargetName="Symbol" Property="Opacity" Value="1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- macOS Traffic Light Button: Maximize (Green) -->
+        <Style x:Key="TrafficMaximize" TargetType="Button">
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse x:Name="Circle" Width="14" Height="14" Fill="#28C840"/>
+                            <TextBlock x:Name="Symbol" Text="+" FontSize="10" FontWeight="Bold" Foreground="#006500"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" Opacity="0"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Circle" Property="Fill" Value="#1DB934"/>
+                                <Setter TargetName="Symbol" Property="Opacity" Value="1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome GlassFrameThickness="-1" CornerRadius="12" CaptionHeight="0" ResizeBorderThickness="4" UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+
+    <!-- ROOT GRID: Background="#01000000" is alpha=1 (nearly invisible) but BLOCKS click-through.
+         This is the KEY fix for the minimize-on-click bug. AllowsTransparency makes fully transparent
+         pixels click-through; #01000000 is opaque enough to catch all mouse events. -->
+    <Grid Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- GLOBAL TOOLBAR 1 (Traffic Lights + Search + Actions) -->
+        <Grid Grid.Row="0" Panel.ZIndex="10" Background="Transparent" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown" MouseMove="TitleBar_MouseMove">
+            <!-- Traffic Lights + Search (Left) -->
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="15,10,0,10" Height="28">
+                <Button Style="{StaticResource TrafficClose}" Click="Close_Click" ToolTip="Close" Margin="0,0,8,0"/>
+                <Button Style="{StaticResource TrafficMinimize}" Click="Minimize_Click" ToolTip="Minimize" Margin="0,0,8,0"/>
+                <Button Style="{StaticResource TrafficMaximize}" Click="Maximize_Click" ToolTip="Maximize" Margin="0,0,12,0"/>
+                <TextBlock Text="Noter" FontWeight="Bold" FontSize="15" Foreground="{Binding Foreground, ElementName=EditorBox}" VerticalAlignment="Center" Margin="0,-1,20,0"/>
+                
+                <TextBox x:Name="SearchBox" Width="260" Height="24" Padding="5,0,0,0" VerticalContentAlignment="Center"
+                         Background="#45FFFFFF" BorderThickness="0" Foreground="White"
+                         Text="Search" GotFocus="SearchBox_GotFocus" LostFocus="SearchBox_LostFocus" TextChanged="SearchBox_TextChanged">
+                    <TextBox.Resources>
+                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
+                    </TextBox.Resources>
+                </TextBox>
+            </StackPanel>
+
+            <!-- Actions (Right) -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="15,10,15,5">
+                <Button Style="{StaticResource ToolbarBtn}" ToolTip="Checklist" Click="AddChecklist_Click" Margin="0,0,5,0">
+                    <Canvas Width="18" Height="18">
+                        <Ellipse Canvas.Left="0" Canvas.Top="1" Width="6" Height="6" Stroke="{Binding Foreground, ElementName=EditorBox}" StrokeThickness="1.3" Fill="Transparent" Opacity="0.75"/>
+                        <Line X1="9" Y1="4" X2="18" Y2="4" Stroke="{Binding Foreground, ElementName=EditorBox}" StrokeThickness="1.3" Opacity="0.75"/>
+                        <Ellipse Canvas.Left="0" Canvas.Top="10" Width="6" Height="6" Stroke="{Binding Foreground, ElementName=EditorBox}" StrokeThickness="1.3" Fill="Transparent" Opacity="0.75"/>
+                        <Line X1="9" Y1="13" X2="18" Y2="13" Stroke="{Binding Foreground, ElementName=EditorBox}" StrokeThickness="1.3" Opacity="0.75"/>
+                        <Path Data="M 1.5 13 L 3 14.8 L 5.5 11.5" Stroke="{Binding Foreground, ElementName=EditorBox}" StrokeThickness="1.2" Fill="Transparent" Opacity="0.75"/>
+                    </Canvas>
+                </Button>
+                <Button Style="{StaticResource ToolbarBtn}" ToolTip="Delete Note" Click="DeleteNote_Click" Margin="0,0,5,0">
+                    <TextBlock Text="&#xE74D;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16" Opacity="0.7"/>
+                </Button>
+                <Button Style="{StaticResource ToolbarBtn}" ToolTip="New Note" Click="NewNote_Click">
+                    <TextBlock Text="&#xE710;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16" Opacity="0.7"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- MAIN CONTENT OVERLAY (Unified 5-Column Grid) -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="RootCol0" Width="200" MinWidth="0"/>
+                <ColumnDefinition x:Name="RootCol1" Width="5"/>
+                <ColumnDefinition x:Name="RootCol2" Width="260" MinWidth="160"/>
+                <ColumnDefinition x:Name="RootCol3" Width="5"/>
+                <ColumnDefinition x:Name="RootCol4" Width="*" MinWidth="200"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" x:Name="HeaderRow"/>
+                <RowDefinition Height="*" x:Name="ContentRow"/>
+            </Grid.RowDefinitions>
+
+            <!-- FULL-HEIGHT COLUMN BACKGROUNDS -->
+            <Border Grid.Column="0" Grid.RowSpan="2" x:Name="FoldersBg" Background="#25808080"/>
+            <Border Grid.Column="2" Grid.RowSpan="2" x:Name="NotesListBg" Background="#15808080"/>
+
+            <!-- FULL-HEIGHT VERTICAL SEPARATORS (Splitters) -->
+            <GridSplitter x:Name="RootFoldersSplitter" Grid.Column="1" Grid.RowSpan="2" Width="5" HorizontalAlignment="Stretch" Background="Transparent" Cursor="SizeWE"/>
+            <GridSplitter x:Name="RootNotesSplitter" Grid.Column="3" Grid.RowSpan="2" Width="5" HorizontalAlignment="Stretch" Background="Transparent" Cursor="SizeWE"/>
+
+            <!-- COLUMN 0: FOLDERS (Header + List) -->
+            <StackPanel x:Name="FoldersHeaderPanel" Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="15,5,0,5">
+                <Button x:Name="ToggleFoldersBtn" Style="{StaticResource ToolbarBtn}" Width="32" Height="32" Click="ToggleFolders_Click" Margin="0,0,5,0" ToolTip="Toggle Sidebar">
+                    <Canvas Width="20" Height="16" Opacity="0.75">
+                        <!-- Outer rounded box -->
+                        <Rectangle Canvas.Left="0" Canvas.Top="0" Width="20" Height="16" RadiusX="3" RadiusY="3" 
+                                   Stroke="{Binding Foreground, ElementName=EditorBox}" StrokeThickness="1.5"/>
+                        <!-- Vertical divider -->
+                        <Line X1="7" Y1="0" X2="7" Y2="16" Stroke="{Binding Foreground, ElementName=EditorBox}" StrokeThickness="1.5"/>
+                        <!-- Three horizontal lines on the left side -->
+                        <Line X1="2.5" Y1="4" X2="5.5" Y2="4" Stroke="{Binding Foreground, ElementName=EditorBox}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        <Line X1="2.5" Y1="8" X2="5.5" Y2="8" Stroke="{Binding Foreground, ElementName=EditorBox}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        <Line X1="2.5" Y1="12" X2="5.5" Y2="12" Stroke="{Binding Foreground, ElementName=EditorBox}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                    </Canvas>
+                </Button>
+                <TextBlock x:Name="FoldersTitle" Text="Folders" FontWeight="Bold" FontSize="20" Foreground="{Binding Foreground, ElementName=EditorBox}" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <Grid Grid.Row="1" Grid.Column="0">
+                <ListBox x:Name="FoldersListBox" Background="Transparent" BorderThickness="0"
+                         SelectionChanged="FoldersListBox_SelectionChanged">
+                </ListBox>
+                <Button x:Name="NewFolderBtn" VerticalAlignment="Bottom" Margin="15,10,15,10" Background="Transparent" BorderThickness="0"
+                        Foreground="{Binding Foreground, ElementName=EditorBox}" HorizontalAlignment="Left"
+                        Padding="0" Cursor="Hand" ToolTip="New Folder" Click="NewFolder_Click">
+                    <TextBlock Text="&#xE8F4;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18"/>
+                </Button>
+            </Grid>
+
+            <!-- COLUMN 2: NOTES (Header + List) -->
+            <TextBlock x:Name="NotesTitle" Grid.Row="0" Grid.Column="2" Text="Notes" FontWeight="Bold" FontSize="20" Foreground="{Binding Foreground, ElementName=EditorBox}" Margin="15,5,15,5" VerticalAlignment="Center"/>
+
+            <ListBox Grid.Row="1" Grid.Column="2" x:Name="NotesList" Background="Transparent" BorderThickness="0" Padding="5"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="NotesList_SelectionChanged">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14" Foreground="{Binding Foreground, ElementName=EditorBox}" TextTrimming="CharacterEllipsis"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                    <TextBlock Text="{Binding DisplayDate}" FontSize="12" Foreground="{Binding Foreground, ElementName=EditorBox}" Margin="0,0,10,0"/>
+                                    <TextBlock Text="{Binding Preview}" FontSize="13" Foreground="{Binding Foreground, ElementName=EditorBox}" Opacity="0.6" TextTrimming="CharacterEllipsis" MaxWidth="160"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="15,10"/>
+                        <Setter Property="Margin" Value="5,2"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="Bd" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#15FFFFFF"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#25FFFFFF"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+
+            <!-- COLUMN 4: EDITOR -->
+            <Grid Grid.Row="1" Grid.Column="4" x:Name="EditorBg" Background="Transparent" Margin="0,10,0,0">
+                <RichTextBox x:Name="EditorBox" FlowDirection="LeftToRight" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                             Background="Transparent" BorderThickness="0" Margin="40,10,40,0" Padding="0"
+                             FontFamily="Source Sans Pro, Segoe UI Variable Text, Segoe UI, sans-serif" FontSize="16" AcceptsReturn="True"
+                             TextChanged="EditorBox_TextChanged" PreviewKeyDown="EditorBox_PreviewKeyDown"
+                             PreviewMouseLeftButtonDown="EditorBox_PreviewMouseLeftButtonDown">
+                    <RichTextBox.Resources>
+                        <Style TargetType="Paragraph">
+                            <Setter Property="Margin" Value="0,0,0,10"/>
+                            <Setter Property="TextAlignment" Value="Left"/>
+                        </Style>
+                    </RichTextBox.Resources>
+                </RichTextBox>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
