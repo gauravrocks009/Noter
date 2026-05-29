@@ -2,6 +2,7 @@
 A beautiful, macOS/Apple Notes-inspired modern WPF notes application designed for Windows. It provides a sleek three-pane interface, rich text editing, interactive checklists, real-time deep search with highlighting, theme switching, and acrylic window transparency with custom window chrome.
 
 ---
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/25e797ae-b111-4775-b102-8d8e6a571a82" />
 
 ## ✨ Features
 
