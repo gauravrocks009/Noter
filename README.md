@@ -48,7 +48,7 @@ A beautiful, macOS/Apple Notes-inspired modern WPF notes application designed fo
 ## ⚙️ How It Works
 
 ### Note Saving & Serialization
-All notes are automatically saved locally in RTF (Rich Text Format) inside the `%APPDATA%\Noter` directory. The application handles real-time saving. To keep notes free from temporary search highlights, the RTF text is stripped of any custom highlight formatting right before saving, and restored immediately afterward.
+All notes are automatically saved locally in markdown format inside the `%APPDATA%\Noter` directory. The application handles real-time saving. To keep notes free from temporary search highlights, the RTF text is stripped of any custom highlight formatting right before saving, and restored immediately afterward.
 
 
 I have fully vibe coded this project but in a few months i will code this app entirely by myself , built it because i needed a good note taking app on windows which isnt an electron app. 
